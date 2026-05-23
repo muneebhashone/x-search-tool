@@ -19,6 +19,19 @@ npm i -g llm-optimized-search
 llms search "..." --route x
 ```
 
+### From source (no publish needed)
+
+Works with plain Node — `npm link` is the equivalent of `bun link`:
+
+```bash
+git clone git@github.com:muneebhashone/llms-cli.git && cd llms-cli
+npm install && npm run build
+npm link        # registers a global `llms` symlink to this checkout
+llms search "..." --route google
+```
+
+`npm unlink -g llm-optimized-search` removes it. `yarn link` / `pnpm link --global` work the same way.
+
 ## API keys
 
 ```bash
@@ -73,7 +86,16 @@ llms search "..." --route google --pretty
 
 ## For AI agents
 
-A skill file lives at [`skills/llms-search/SKILL.md`](skills/llms-search/SKILL.md). Drop it into your agent's skills directory (e.g. `~/.claude/skills/llms-search/SKILL.md` for Claude Code) and the agent will pick the right route, parse the JSON, and avoid the common gotchas without further prompting.
+A skill file lives at [`skills/llms-search/SKILL.md`](skills/llms-search/SKILL.md). It teaches the agent to pick the right route, parse the JSON, and avoid the common gotchas without further prompting.
+
+Install via [skills.sh](https://www.skills.sh/docs) (one command, auto-detects your agent):
+
+```bash
+npx skills add muneebhashone/llms-cli           # project scope → ./<agent>/skills/
+npx skills add -g muneebhashone/llms-cli        # global scope  → ~/<agent>/skills/
+```
+
+Or drop `skills/llms-search/SKILL.md` into your agent's skills directory manually (e.g. `~/.claude/skills/llms-search/SKILL.md` for Claude Code).
 
 ## License
 

@@ -12,16 +12,7 @@ The model is *not* allowed to answer from memory. Tool use is forced via (a) pro
 
 ## Install
 
-```bash
-npx llm-optimized-search search "..." --route google
-# or
-npm i -g llm-optimized-search
-llms search "..." --route x
-```
-
-### From source (no publish needed)
-
-Works with plain Node — `npm link` is the equivalent of `bun link`:
+Not on npm — install from source. `npm link` is the Node/npm equivalent of `bun link`:
 
 ```bash
 git clone git@github.com:muneebhashone/llms-cli.git && cd llms-cli

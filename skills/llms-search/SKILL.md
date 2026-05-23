@@ -9,11 +9,7 @@ A CLI (`llms`) that forces an LLM to call its own native search tool — Grok's 
 
 ## Install
 
-```bash
-npm i -g llm-optimized-search   # provides `llms`
-# or, for one-off use without install:
-npx llm-optimized-search search "<query>" --route google
-```
+Not on npm. The `llms` binary must already be on `PATH` — if it isn't, ask the user to follow the project README (clone + `npm install && npm run build && npm link`).
 
 ## Routes — pick one per call
 

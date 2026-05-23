@@ -37,13 +37,15 @@ export class LlmsError extends Error {
 export const badArgs = (msg: string, detail?: unknown) =>
   new LlmsError({ code: "bad_args", message: msg, exit: ExitCode.BAD_ARGS, detail });
 
-export const missingKey = (envVar: string, route: Route) =>
-  new LlmsError({
+export const missingKey = (envVar: string, route: Route) => {
+  const provider = envVar.startsWith("XAI") ? "xai" : "gemini";
+  return new LlmsError({
     code: "missing_api_key",
-    message: `Required env var ${envVar} is not set`,
+    message: `${envVar} not set. Run \`llms auth login --provider ${provider}\` or export ${envVar}.`,
     exit: ExitCode.MISSING_KEY,
     route,
   });
+};
 
 export const providerError = (
   msg: string,

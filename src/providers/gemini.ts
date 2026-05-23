@@ -8,6 +8,7 @@ import {
 } from "../config.js";
 import { computeCostUsd } from "../cost/pricing.js";
 import { missingKey, providerError } from "../errors.js";
+import { resolveApiKey } from "../auth/resolve.js";
 import {
   SYSTEM_PROMPT_GOOGLE,
   SYSTEM_PROMPT_NO_ANSWER_SUFFIX,
@@ -16,7 +17,7 @@ import type { RunOptions } from "../config.js";
 import type { Citation, Result, SearchEnvelope } from "../output/schema.js";
 
 export async function run(opts: RunOptions): Promise<SearchEnvelope> {
-  const apiKey = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY;
+  const apiKey = resolveApiKey("gemini").key;
   if (!apiKey) throw missingKey("GEMINI_API_KEY", "google");
 
   const model = resolveModel("google", opts.model);

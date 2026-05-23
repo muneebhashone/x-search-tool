@@ -1,0 +1,23 @@
+{
+  "id": "resp_test_web",
+  "model": "grok-4.3",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "SpaceX is in talks to acquire Anysphere for $60B.[[1]](https://example.com/a)[[2]](https://example.com/b)",
+          "annotations": [
+            { "url": "https://example.com/a", "title": "1" },
+            { "url": "https://example.com/b", "title": "2" }
+          ]
+        }
+      ]
+    }
+  ],
+  "usage": {
+    "input_tokens": 200,
+    "output_tokens": 80
+  }
+}

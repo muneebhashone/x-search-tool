@@ -34,9 +34,23 @@ llms search "..." --route google
 
 ## API keys
 
+Two ways. Pick either — `llms search` resolves keys in this order: env var → `llms auth` store → error.
+
+**For humans** (persisted to `~/.llms/config.json`, file-perm `0600`):
+
+```bash
+llms auth login                              # interactive: asks provider + key (hidden input)
+llms auth login --provider xai --key sk-...  # non-interactive (scripts)
+llms auth status                             # show what's stored (last-4 masked)
+llms auth logout --provider xai              # remove one
+llms auth logout --all --yes                 # remove everything
+```
+
+**For agents / CI** (env vars always win, so a stored key won't override a deliberate env):
+
 ```bash
 export XAI_API_KEY=...      # for --route x and --route web
-export GEMINI_API_KEY=...   # for --route google
+export GEMINI_API_KEY=...   # for --route google (GOOGLE_API_KEY also accepted)
 ```
 
 `.env` is loaded only if `LLMS_DOTENV=1`.

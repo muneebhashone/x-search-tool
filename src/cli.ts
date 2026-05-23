@@ -7,6 +7,7 @@ import { formatCompact, formatErrorCompact } from "./output/compact.js";
 import { formatPretty, formatErrorPretty } from "./output/pretty.js";
 import { RouteSchema, type ErrorEnvelope, type Route } from "./output/schema.js";
 import { KNOWN_ROUTES, route as runRoute } from "./router.js";
+import * as authCmd from "./commands/auth.js";
 
 const VERSION = "0.1.0";
 
@@ -30,6 +31,38 @@ async function main(): Promise<void> {
     .example('  llms search "Anysphere acquisition news May 2026" --route web')
     .action(async (query: string, flags: CliFlags) => {
       await handleSearch(query, flags);
+    });
+
+  cli
+    .command("auth <action>", "Manage stored API keys (login | status | logout)")
+    .option("--provider <name>", "xai | gemini")
+    .option("--key <value>", "API key (skips prompt; use only in scripts)")
+    .option("--all", "Remove all stored keys (logout only)")
+    .option("--yes", "Skip confirmation prompt for --all (logout only)")
+    .example("  llms auth login")
+    .example("  llms auth login --provider xai --key sk-...")
+    .example("  llms auth status")
+    .example("  llms auth logout --provider xai")
+    .example("  llms auth logout --all --yes")
+    .action(async (action: string, flags: authCmd.LoginFlags & authCmd.LogoutFlags) => {
+      try {
+        switch (action) {
+          case "login":
+            await authCmd.login(flags);
+            break;
+          case "status":
+            authCmd.status();
+            break;
+          case "logout":
+            await authCmd.logout(flags);
+            break;
+          default:
+            throw badArgs(`unknown auth action "${action}". Use: login | status | logout`);
+        }
+        process.exitCode = ExitCode.OK;
+      } catch (err) {
+        fail(err, false);
+      }
     });
 
   cli.help();
@@ -81,7 +114,8 @@ async function handleSearch(query: string, flags: CliFlags): Promise<void> {
     if (pretty) process.stdout.write(formatPretty(env) + "\n");
     else process.stdout.write(formatCompact(env) + "\n");
 
-    process.exit(ExitCode.OK);
+    process.exitCode = ExitCode.OK;
+    return;
   } catch (err) {
     fail(err, pretty);
   }

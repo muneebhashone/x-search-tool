@@ -1,0 +1,12 @@
+import "./config.test.js";
+import "./errors.test.js";
+import "./router.test.js";
+import "./cost/pricing.test.js";
+import "./output/schema.test.js";
+import "./output/compact.test.js";
+import "./auth/store.test.js";
+import "./auth/resolve.test.js";
+import "./commands/auth.test.js";
+import "./providers/grok-x.test.js";
+import "./providers/grok-web.test.js";
+import "./cli.smoke.test.js";

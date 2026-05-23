@@ -1,0 +1,46 @@
+{
+  "id": "resp_test_x",
+  "model": "grok-4.3",
+  "output": [
+    {
+      "type": "x_search_call",
+      "id": "call_1"
+    },
+    {
+      "type": "x_search_result",
+      "results": [
+        {
+          "url": "https://x.com/i/status/100",
+          "title": "Anthropic just shipped Claude 4.7",
+          "snippet": "fast-mode is wild — 2.5x faster than 4.6",
+          "date": "2026-05-22"
+        },
+        {
+          "url": "https://x.com/i/status/101",
+          "title": "Opus 4.7 vs Gemini 3.5",
+          "snippet": "side-by-side on a research task",
+          "date": "2026-05-22"
+        }
+      ]
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "Claude 4.7 Opus launched with a 2.5x faster fast-mode and is being compared favorably to Gemini 3.5 on research tasks.",
+          "annotations": [
+            { "url": "https://x.com/i/status/100", "title": "https://x.com/i/status/100" },
+            { "url": "https://x.com/i/status/101", "title": "https://x.com/i/status/101" },
+            { "url": "https://x.com/i/status/102", "title": "https://x.com/i/status/102", "quote": "annotation-only post" }
+          ]
+        }
+      ]
+    }
+  ],
+  "usage": {
+    "input_tokens": 320,
+    "output_tokens": 110,
+    "cached_tokens": 256
+  }
+}

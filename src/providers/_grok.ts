@@ -1,6 +1,7 @@
 import { XAI_BASE_URL } from "../config.js";
 import { computeCostUsd } from "../cost/pricing.js";
 import { missingKey, providerError } from "../errors.js";
+import { resolveApiKey } from "../auth/resolve.js";
 import type { Citation, Result, Route, SearchEnvelope } from "../output/schema.js";
 
 type GrokToolType = "x_search" | "web_search";
@@ -20,7 +21,7 @@ type GrokCallOpts = {
 };
 
 export async function callGrok(opts: GrokCallOpts): Promise<SearchEnvelope> {
-  const apiKey = process.env.XAI_API_KEY;
+  const apiKey = resolveApiKey("xai").key;
   if (!apiKey) throw missingKey("XAI_API_KEY", opts.route);
 
   const toolDef: Record<string, unknown> = { type: opts.toolType };
@@ -34,7 +35,7 @@ export async function callGrok(opts: GrokCallOpts): Promise<SearchEnvelope> {
     input: [{ role: "user", content: opts.query }],
     instructions: opts.systemPrompt,
     tools: [toolDef],
-    tool_choice: { type: opts.toolType },
+    tool_choice: "required",
     max_output_tokens: opts.noAnswer ? 64 : opts.maxTokens,
     parallel_tool_calls: false,
     store: false,
@@ -110,7 +111,7 @@ function parseGrokResponse(
     ) {
       collectResultsFromBlock(block, results, opts.toolType);
     } else if (type === "message" || type === "output_text") {
-      collectTextFromMessage(block, synthesisParts, citations);
+      collectTextFromMessage(block, synthesisParts, citations, results, opts.toolType);
     }
   }
 
@@ -229,7 +230,10 @@ function collectTextFromMessage(
   block: Record<string, unknown>,
   texts: string[],
   citations: Citation[],
+  results: Result[],
+  toolType: GrokToolType,
 ): void {
+  const sourceTag: "x" | "web" = toolType === "x_search" ? "x" : "web";
   const content = block["content"];
   if (typeof block["text"] === "string") texts.push(block["text"] as string);
   if (Array.isArray(content)) {
@@ -242,11 +246,23 @@ function collectTextFromMessage(
           if (!isObject(a)) continue;
           const url = String(a["url"] ?? "");
           if (!url) continue;
-          if (citations.some((x) => x.url === url)) continue;
-          const cit: Citation = { idx: citations.length, url };
           const quote = a["quote"] ?? a["text"];
-          if (typeof quote === "string") cit.quote = quote.slice(0, 280);
-          citations.push(cit);
+          if (!citations.some((x) => x.url === url)) {
+            const cit: Citation = { idx: citations.length, url };
+            if (typeof quote === "string") cit.quote = quote.slice(0, 280);
+            citations.push(cit);
+          }
+          if (!results.some((r) => r.url === url)) {
+            const r: Result = {
+              url,
+              title: String(a["title"] ?? ""),
+              snippet: typeof quote === "string" ? quote.slice(0, 500) : "",
+              source: sourceTag,
+            };
+            const date = a["date"] ?? a["published_at"] ?? a["created_at"];
+            if (typeof date === "string" && date.length > 0) r.date = date;
+            results.push(r);
+          }
         }
       }
     }

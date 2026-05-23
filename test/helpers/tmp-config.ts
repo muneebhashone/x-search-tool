@@ -8,9 +8,9 @@ export type TmpConfig = {
 };
 
 export function useTmpConfigDir(): TmpConfig {
-  const prior = process.env.LLMS_CONFIG_DIR;
-  const dir = mkdtempSync(join(tmpdir(), "llms-test-"));
-  process.env.LLMS_CONFIG_DIR = dir;
+  const prior = process.env.XSEARCH_CONFIG_DIR;
+  const dir = mkdtempSync(join(tmpdir(), "x-search-test-"));
+  process.env.XSEARCH_CONFIG_DIR = dir;
   return {
     dir,
     restore: () => {
@@ -19,8 +19,8 @@ export function useTmpConfigDir(): TmpConfig {
       } catch {
         /* best effort */
       }
-      if (prior === undefined) delete process.env.LLMS_CONFIG_DIR;
-      else process.env.LLMS_CONFIG_DIR = prior;
+      if (prior === undefined) delete process.env.XSEARCH_CONFIG_DIR;
+      else process.env.XSEARCH_CONFIG_DIR = prior;
     },
   };
 }

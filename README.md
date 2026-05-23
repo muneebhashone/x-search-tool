@@ -1,65 +1,64 @@
-# llms — LLM-native search CLI
+# x-search — X-first search CLI
 
-Force an LLM to use *its own* specialized search tool and return sources as JSON. Built for AI agents (one shell call → one JSON envelope). Pass `--pretty` for humans.
+Force Grok to run an **X-first** search and return sources as JSON. Built for AI agents (one shell call → one JSON envelope). Pass `--pretty` for humans.
 
-## Routes
+## How it works
 
-- **`--route x`** — Grok `x_search`. Real-time X/Twitter index. Nobody else has this.
-- **`--route google`** — Gemini `google_search`. Actual Google index, with grounding.
-- **`--route web`** — Grok `web_search`. xAI's general web index.
+One call hands the Grok model **two** tools in a single request:
 
-The model is *not* allowed to answer from memory. Tool use is forced via (a) providing only that tool, (b) `tool_choice`, and (c) a strict system prompt.
+- **`x_search`** — Grok's real-time X/Twitter index. The primary tool. Nobody else has this.
+- **`web_search`** — Grok's general web index. The model is instructed to use it **only as a fallback**, when X results are absent or insufficient.
+
+The model is *not* allowed to answer from memory. Tool use is forced via `tool_choice: "required"` and a strict system prompt that prioritizes X. Every result is tagged `source: "x"` or `source: "web"` so you know where each hit came from.
 
 ## Install
 
 Not on npm — install from source. `npm link` is the Node/npm equivalent of `bun link`:
 
 ```bash
-git clone git@github.com:muneebhashone/llms-cli.git && cd llms-cli
+git clone git@github.com:muneebhashone/x-search-tool.git && cd x-search-tool
 npm install && npm run build
-npm link        # registers a global `llms` symlink to this checkout
-llms search "..." --route google
+npm link        # registers a global `x-search` symlink to this checkout
+x-search search "reactions to Claude 4.7 on X"
 ```
 
-`npm unlink -g llm-optimized-search` removes it. `yarn link` / `pnpm link --global` work the same way.
+`npm unlink -g x-search-tool` removes it. `yarn link` / `pnpm link --global` work the same way.
 
-## API keys
+## API key
 
-Two ways. Pick either — `llms search` resolves keys in this order: env var → `llms auth` store → error.
+One key. `x-search search` resolves it in this order: env var → `x-search auth` store → error.
 
-**For humans** (persisted to `~/.llms/config.json`, file-perm `0600`):
+**For humans** (persisted to `~/.x-search/config.json`, file-perm `0600`):
 
 ```bash
-llms auth login                              # interactive: asks provider + key (hidden input)
-llms auth login --provider xai --key sk-...  # non-interactive (scripts)
-llms auth status                             # show what's stored (last-4 masked)
-llms auth logout --provider xai              # remove one
-llms auth logout --all --yes                 # remove everything
+x-search auth login                              # interactive: asks provider + key (hidden input)
+x-search auth login --provider xai --key sk-...  # non-interactive (scripts)
+x-search auth status                             # show what's stored (last-4 masked)
+x-search auth logout --provider xai              # remove it
+x-search auth logout --all --yes                 # remove everything
 ```
 
 **For agents / CI** (env vars always win, so a stored key won't override a deliberate env):
 
 ```bash
-export XAI_API_KEY=...      # for --route x and --route web
-export GEMINI_API_KEY=...   # for --route google (GOOGLE_API_KEY also accepted)
+export XAI_API_KEY=...      # the only key x-search needs
 ```
 
-`.env` is loaded only if `LLMS_DOTENV=1`.
+`.env` is loaded only if `XSEARCH_DOTENV=1`.
 
 ## Usage
 
 ```text
-llms search <query> --route x|google|web [--pretty]
+x-search search <query> [--pretty]
 ```
 
-That's it. Everything else (model selection, token caps, timeout, caching, parallelism, image/video understanding) is baked in to the cheapest-and-cachiest setting — you don't choose, the tool chooses for you.
+That's it — no route, no other flags. Everything else (model selection, token caps, timeout, caching, parallelism, image/video understanding) is baked in to the cheapest-and-cachiest setting — you don't choose, the tool chooses for you.
 
 ## Output
 
 ```json
 {
   "query": "...",
-  "route": "x",
   "results": [{"url":"...","title":"...","snippet":"...","date":"2026-05-22","source":"x"}],
   "answer": "<1–3 sentence synthesis>",
   "citations": [{"url":"...","quote":"..."}],
@@ -67,40 +66,40 @@ That's it. Everything else (model selection, token caps, timeout, caching, paral
 }
 ```
 
-Exit codes: `0` ok, `2` bad args, `3` missing API key, `4` provider error.
+Each result's `source` is `"x"` (X/Twitter) or `"web"` (fallback). Exit codes: `0` ok, `2` bad args, `3` missing API key, `4` provider error.
 
 ## Examples
 
 ```bash
-llms search "latest reactions to Claude 4.7" --route x
-llms search "site:nvidia.com B200 release notes" --route google
-llms search "Anysphere acquisition news May 2026" --route web
+x-search search "latest reactions to Claude 4.7 on X"
+x-search search "replies to elonmusk latest tweet about Grok"
 
 # human view
-llms search "..." --route google --pretty
+x-search search "what's trending in AI on X" --pretty
 ```
 
 ## Baked-in defaults (you don't touch these)
 
-- Cheapest tool-capable model per route (`grok-4.3`, `gemini-2.5-flash`)
-- Prompt caching always on (Gemini implicit on 2.5+; xAI `cached_tokens` automatic)
+- Cheapest tool-capable model (`grok-4.3`)
+- Both `x_search` and `web_search` offered in one call; X prioritized via the system prompt
+- Prompt caching always on (xAI `cached_tokens` automatic)
 - `temperature: 0`, `max_output_tokens: 1024`, `parallel_tool_calls: false`, `store: false`
-- One search per call; image/video understanding off
+- Image/video understanding off
 - 30 s timeout
 - Compact JSON output (short keys, no whitespace)
 
 ## For AI agents
 
-A skill file lives at [`skills/llms-search/SKILL.md`](skills/llms-search/SKILL.md). It teaches the agent to pick the right route, parse the JSON, and avoid the common gotchas without further prompting.
+A skill file lives at [`skills/x-search/SKILL.md`](skills/x-search/SKILL.md). It teaches the agent to call the tool, parse the JSON, and avoid the common gotchas without further prompting.
 
 Install via [skills.sh](https://www.skills.sh/docs) (one command, auto-detects your agent):
 
 ```bash
-npx skills add muneebhashone/llms-cli           # project scope → ./<agent>/skills/
-npx skills add -g muneebhashone/llms-cli        # global scope  → ~/<agent>/skills/
+npx skills add muneebhashone/x-search-tool           # project scope → ./<agent>/skills/
+npx skills add -g muneebhashone/x-search-tool        # global scope  → ~/<agent>/skills/
 ```
 
-Or drop `skills/llms-search/SKILL.md` into your agent's skills directory manually (e.g. `~/.claude/skills/llms-search/SKILL.md` for Claude Code).
+Or drop `skills/x-search/SKILL.md` into your agent's skills directory manually (e.g. `~/.claude/skills/x-search/SKILL.md` for Claude Code).
 
 ## License
 

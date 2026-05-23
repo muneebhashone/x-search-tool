@@ -1,10 +1,10 @@
 {
-  "name": "llm-optimized-search",
-  "version": "0.1.0",
-  "description": "CLI that forces specialized LLM-native search tools (Grok x_search, Gemini google_search, Grok web_search) — optimized for AI agents",
+  "name": "x-search-tool",
+  "version": "0.2.0",
+  "description": "X-first search CLI — forces Grok's x_search (with web_search fallback) and returns cited JSON. Optimized for AI agents.",
   "type": "module",
   "bin": {
-    "llms": "./dist/cli.js"
+    "x-search": "./dist/cli.js"
   },
   "files": [
     "dist",
@@ -23,7 +23,6 @@
     "node": ">=18.17"
   },
   "dependencies": {
-    "@google/genai": "^2.0.1",
     "cac": "^6.7.14",
     "zod": "^3.23.0"
   },

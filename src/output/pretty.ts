@@ -2,7 +2,7 @@ import type { SearchEnvelope, ErrorEnvelope } from "./schema.js";
 
 export function formatPretty(env: SearchEnvelope): string {
   const lines: string[] = [];
-  lines.push(`route: ${env.route}  model: ${env.model}`);
+  lines.push(`model: ${env.model}`);
   lines.push(`query: ${env.query}`);
   lines.push("");
 
@@ -35,7 +35,6 @@ export function formatPretty(env: SearchEnvelope): string {
 export function formatErrorPretty(err: ErrorEnvelope): string {
   const e = err.error;
   const parts = [`error: ${e.code}`, e.message];
-  if (e.route) parts.push(`route: ${e.route}`);
   if (e.provider) parts.push(`provider: ${e.provider}`);
   return parts.join("\n");
 }

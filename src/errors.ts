@@ -1,5 +1,3 @@
-import type { Route } from "./output/schema.js";
-
 export const ExitCode = {
   OK: 0,
   BAD_ARGS: 2,
@@ -10,10 +8,9 @@ export const ExitCode = {
 
 export type ExitCodeValue = (typeof ExitCode)[keyof typeof ExitCode];
 
-export class LlmsError extends Error {
+export class XSearchError extends Error {
   code: string;
   exit: ExitCodeValue;
-  route?: Route;
   provider?: string;
   detail?: unknown;
 
@@ -21,41 +18,35 @@ export class LlmsError extends Error {
     code: string;
     message: string;
     exit: ExitCodeValue;
-    route?: Route;
     provider?: string;
     detail?: unknown;
   }) {
     super(opts.message);
     this.code = opts.code;
     this.exit = opts.exit;
-    if (opts.route !== undefined) this.route = opts.route;
     if (opts.provider !== undefined) this.provider = opts.provider;
     if (opts.detail !== undefined) this.detail = opts.detail;
   }
 }
 
 export const badArgs = (msg: string, detail?: unknown) =>
-  new LlmsError({ code: "bad_args", message: msg, exit: ExitCode.BAD_ARGS, detail });
+  new XSearchError({ code: "bad_args", message: msg, exit: ExitCode.BAD_ARGS, detail });
 
-export const missingKey = (envVar: string, route: Route) => {
-  const provider = envVar.startsWith("XAI") ? "xai" : "gemini";
-  return new LlmsError({
+export const missingKey = (envVar: string = "XAI_API_KEY") =>
+  new XSearchError({
     code: "missing_api_key",
-    message: `${envVar} not set. Run \`llms auth login --provider ${provider}\` or export ${envVar}.`,
+    message: `${envVar} not set. Run \`x-search auth login --provider xai\` or export ${envVar}.`,
     exit: ExitCode.MISSING_KEY,
-    route,
   });
-};
 
 export const providerError = (
   msg: string,
-  opts: { route: Route; provider: string; detail?: unknown },
+  opts: { provider: string; detail?: unknown },
 ) =>
-  new LlmsError({
+  new XSearchError({
     code: "provider_error",
     message: msg,
     exit: ExitCode.PROVIDER_ERROR,
-    route: opts.route,
     provider: opts.provider,
     detail: opts.detail,
   });

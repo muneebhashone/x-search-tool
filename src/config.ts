@@ -1,11 +1,6 @@
 import { readFileSync } from "node:fs";
-import type { Route } from "./output/schema.js";
 
-export const DEFAULT_MODEL: Record<Route, string> = {
-  x: "grok-4.3",
-  web: "grok-4.3",
-  google: "gemini-2.5-flash",
-};
+export const DEFAULT_MODEL = "grok-4.3";
 
 export const DEFAULT_MAX_TOKENS = 1024;
 export const DEFAULT_RESULTS = 10;
@@ -15,7 +10,6 @@ export const XAI_BASE_URL = "https://api.x.ai/v1";
 
 export type RunOptions = {
   query: string;
-  route: Route;
   model?: string;
   maxTokens?: number;
   maxResults?: number;
@@ -26,12 +20,12 @@ export type RunOptions = {
   full?: boolean;
 };
 
-export function resolveModel(route: Route, override?: string): string {
-  return override && override.length > 0 ? override : DEFAULT_MODEL[route];
+export function resolveModel(override?: string): string {
+  return override && override.length > 0 ? override : DEFAULT_MODEL;
 }
 
 export function loadDotenvIfRequested(): void {
-  if (process.env.LLMS_DOTENV !== "1") return;
+  if (process.env.XSEARCH_DOTENV !== "1") return;
   try {
     const txt = readFileSync(".env", "utf8");
     for (const raw of txt.split(/\r?\n/)) {

@@ -1,8 +1,5 @@
 import { z } from "zod";
 
-export const RouteSchema = z.enum(["x", "google", "web"]);
-export type Route = z.infer<typeof RouteSchema>;
-
 export const ResultSchema = z.object({
   url: z.string(),
   title: z.string(),
@@ -30,7 +27,6 @@ export type Usage = z.infer<typeof UsageSchema>;
 
 export const SearchEnvelopeSchema = z.object({
   query: z.string(),
-  route: RouteSchema,
   model: z.string(),
   results: z.array(ResultSchema),
   answer: z.string(),
@@ -44,7 +40,6 @@ export const ErrorEnvelopeSchema = z.object({
   error: z.object({
     code: z.string(),
     message: z.string(),
-    route: RouteSchema.optional(),
     provider: z.string().optional(),
     detail: z.unknown().optional(),
   }),

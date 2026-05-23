@@ -2,21 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
-  RouteSchema,
   ResultSchema,
   CitationSchema,
   UsageSchema,
   SearchEnvelopeSchema,
   ErrorEnvelopeSchema,
 } from "../../src/output/schema.js";
-
-test("RouteSchema accepts x|google|web only", () => {
-  for (const r of ["x", "google", "web"] as const) {
-    assert.equal(RouteSchema.parse(r), r);
-  }
-  assert.equal(RouteSchema.safeParse("twitter").success, false);
-  assert.equal(RouteSchema.safeParse("").success, false);
-});
 
 test("ResultSchema requires url/title/snippet/source; date optional", () => {
   assert.equal(
@@ -36,7 +27,7 @@ test("ResultSchema requires url/title/snippet/source; date optional", () => {
       source: "google",
     }).success,
     false,
-    "source must be 'x' or 'web' — google route still tags results, but the per-result tag is x/web",
+    "source must be 'x' or 'web'",
   );
 });
 
@@ -60,7 +51,6 @@ test("UsageSchema: cost_usd must be non-negative number", () => {
 test("SearchEnvelopeSchema validates a realistic envelope", () => {
   const env = {
     query: "q",
-    route: "x" as const,
     model: "grok-4.3",
     results: [{ url: "u", title: "t", snippet: "s", source: "x" as const }],
     answer: "a",
@@ -80,7 +70,7 @@ test("ErrorEnvelopeSchema validates structure", () => {
   );
   assert.equal(
     ErrorEnvelopeSchema.safeParse({
-      error: { code: "provider_error", message: "x", route: "x", provider: "xai", detail: { status: 422 } },
+      error: { code: "provider_error", message: "x", provider: "xai", detail: { status: 422 } },
     }).success,
     true,
   );

@@ -28,9 +28,8 @@ test("store: setKey + getStoredKey round-trip", () => {
   try {
     setKey("xai", "abc123");
     assert.equal(getStoredKey("xai"), "abc123");
-    setKey("gemini", "AIza-xyz");
-    assert.equal(getStoredKey("gemini"), "AIza-xyz");
-    assert.equal(getStoredKey("xai"), "abc123", "second setKey must not clobber first");
+    setKey("xai", "abc456");
+    assert.equal(getStoredKey("xai"), "abc456", "setKey overwrites in place");
   } finally {
     tmp.restore();
   }
@@ -59,14 +58,12 @@ test("store: file written with 0600 perms on Unix (skipped on Windows)", { skip:
   }
 });
 
-test("store: clearKey removes one provider, leaves others, returns true/false correctly", () => {
+test("store: clearKey removes the key, returns true/false correctly", () => {
   const tmp = useTmpConfigDir();
   try {
     setKey("xai", "k1");
-    setKey("gemini", "k2");
     assert.equal(clearKey("xai"), true);
     assert.equal(getStoredKey("xai"), undefined);
-    assert.equal(getStoredKey("gemini"), "k2", "other provider preserved");
     assert.equal(clearKey("xai"), false, "second clear returns false");
   } finally {
     tmp.restore();

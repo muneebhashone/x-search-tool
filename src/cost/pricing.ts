@@ -13,37 +13,9 @@ export const XAI_PRICING: Record<string, ModelPricing> = {
   "grok-build-0.1": { input_per_mtok: 1.0, output_per_mtok: 2.0 },
 };
 
-export const GEMINI_PRICING: Record<string, ModelPricing> = {
-  "gemini-2.5-flash": {
-    input_per_mtok: 0.3,
-    output_per_mtok: 2.5,
-    per_search_usd: 0.035,
-  },
-  "gemini-2.5-pro": {
-    input_per_mtok: 1.25,
-    output_per_mtok: 10.0,
-    per_search_usd: 0.035,
-  },
-  "gemini-2.5-flash-lite": {
-    input_per_mtok: 0.1,
-    output_per_mtok: 0.4,
-    per_search_usd: 0.035,
-  },
-  "gemini-3-flash-preview": {
-    input_per_mtok: 0.3,
-    output_per_mtok: 2.5,
-    per_search_usd: 0.035,
-  },
-  "gemini-3-pro-preview": {
-    input_per_mtok: 1.25,
-    output_per_mtok: 10.0,
-    per_search_usd: 0.035,
-  },
-};
-
 export type CostInput = {
   model: string;
-  provider: "xai" | "gemini";
+  provider: "xai";
   in_tokens: number;
   cached_tokens: number;
   out_tokens: number;
@@ -51,8 +23,7 @@ export type CostInput = {
 };
 
 export function computeCostUsd(c: CostInput): number {
-  const table = c.provider === "xai" ? XAI_PRICING : GEMINI_PRICING;
-  const p = table[c.model];
+  const p = XAI_PRICING[c.model];
   if (!p) return 0;
   const billable_in = Math.max(0, c.in_tokens - c.cached_tokens);
   const cached_rate = p.cached_input_per_mtok ?? p.input_per_mtok * 0.1;

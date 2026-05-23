@@ -2,7 +2,6 @@ import { getStoredKey, type Provider } from "./store.js";
 
 export const ENV_NAMES: Record<Provider, readonly string[]> = {
   xai: ["XAI_API_KEY"],
-  gemini: ["GEMINI_API_KEY", "GOOGLE_API_KEY"],
 };
 
 export type KeySource = "env" | "store" | "none";

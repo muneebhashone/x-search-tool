@@ -2,8 +2,8 @@ import { mkdirSync, readFileSync, writeFileSync, renameSync, chmodSync, unlinkSy
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-export type Provider = "xai" | "gemini";
-export const PROVIDERS: readonly Provider[] = ["xai", "gemini"];
+export type Provider = "xai";
+export const PROVIDERS: readonly Provider[] = ["xai"];
 
 export type StoredAuth = { api_key: string };
 export type ConfigFile = {
@@ -14,11 +14,11 @@ export type ConfigFile = {
 const CONFIG_FILENAME = "config.json";
 
 export function configDir(): string {
-  const override = process.env.LLMS_CONFIG_DIR;
+  const override = process.env.XSEARCH_CONFIG_DIR;
   if (override && override.length > 0) return override;
   const xdg = process.env.XDG_CONFIG_HOME;
-  if (xdg && xdg.length > 0 && process.platform !== "win32") return join(xdg, "llms");
-  return join(homedir(), ".llms");
+  if (xdg && xdg.length > 0 && process.platform !== "win32") return join(xdg, "x-search");
+  return join(homedir(), ".x-search");
 }
 
 export function configPath(): string {

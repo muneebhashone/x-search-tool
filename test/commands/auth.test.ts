@@ -119,7 +119,7 @@ test("status: empty store prints hint about login", () => {
     authCmd.status();
     io.restore();
     assert.match(io.captured.stdout, /not stored/);
-    assert.match(io.captured.stdout, /llms auth login/);
+    assert.match(io.captured.stdout, /x-search auth login/);
   } finally {
     io.restore();
     tmp.restore();
@@ -159,16 +159,14 @@ test("status: env var presence noted in output (env wins over store)", () => {
   }
 });
 
-test("logout --provider removes one key only", async () => {
+test("logout --provider removes the stored key", async () => {
   const tmp = useTmpConfigDir();
   const io = captureIO();
   try {
     setKey("xai", "k1");
-    setKey("gemini", "k2");
     await authCmd.logout({ provider: "xai", yes: true });
     io.restore();
     assert.equal(getStoredKey("xai"), undefined);
-    assert.equal(getStoredKey("gemini"), "k2");
     assert.match(io.captured.stdout, /Removed xai key/);
   } finally {
     io.restore();
@@ -181,11 +179,9 @@ test("logout --all --yes removes everything without prompting", async () => {
   const io = captureIO();
   try {
     setKey("xai", "k1");
-    setKey("gemini", "k2");
     await authCmd.logout({ all: true, yes: true });
     io.restore();
     assert.equal(getStoredKey("xai"), undefined);
-    assert.equal(getStoredKey("gemini"), undefined);
     assert.match(io.captured.stdout, /Removed all stored keys/);
   } finally {
     io.restore();

@@ -6,7 +6,6 @@ import type { SearchEnvelope, ErrorEnvelope } from "../../src/output/schema.js";
 
 const ENV: SearchEnvelope = {
   query: "q",
-  route: "x",
   model: "grok-4.3",
   results: [{ url: "https://x.com/i/status/1", title: "t", snippet: "s", source: "x" }],
   answer: "a",
@@ -14,7 +13,7 @@ const ENV: SearchEnvelope = {
   usage: { in: 100, out: 50, cached: 80, searches: 1, cost_usd: 0.001234 },
 };
 
-test("formatCompact: documented contract — exactly query/route/results/answer/citations/cost_usd", () => {
+test("formatCompact: documented contract — exactly query/results/answer/citations/cost_usd", () => {
   const json = JSON.parse(formatCompact(ENV));
   assert.deepEqual(Object.keys(json).sort(), [
     "answer",
@@ -22,7 +21,6 @@ test("formatCompact: documented contract — exactly query/route/results/answer/
     "cost_usd",
     "query",
     "results",
-    "route",
   ]);
 });
 

@@ -1,0 +1,54 @@
+{
+  "id": "resp_test_mixed",
+  "model": "grok-4.3",
+  "output": [
+    {
+      "type": "x_search_call",
+      "id": "call_1"
+    },
+    {
+      "type": "x_search_result",
+      "results": [
+        {
+          "url": "https://x.com/i/status/200",
+          "title": "B200 benchmarks are insane",
+          "snippet": "people on X reacting to the new numbers",
+          "date": "2026-05-22"
+        }
+      ]
+    },
+    {
+      "type": "web_search_call",
+      "id": "call_2"
+    },
+    {
+      "type": "web_search_result",
+      "results": [
+        {
+          "url": "https://docs.nvidia.com/b200",
+          "title": "B200 release notes",
+          "snippet": "official specs and availability",
+          "date": "2026-05-20"
+        }
+      ]
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "X users are praising the B200 benchmarks; NVIDIA's docs confirm the specs.",
+          "annotations": [
+            { "url": "https://x.com/i/status/200", "title": "https://x.com/i/status/200" },
+            { "url": "https://docs.nvidia.com/b200", "title": "B200 release notes" }
+          ]
+        }
+      ]
+    }
+  ],
+  "usage": {
+    "input_tokens": 400,
+    "output_tokens": 90,
+    "cached_tokens": 128
+  }
+}

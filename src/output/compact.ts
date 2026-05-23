@@ -3,7 +3,6 @@ import type { SearchEnvelope, ErrorEnvelope } from "./schema.js";
 type CompactCitation = { url: string; quote?: string };
 type CompactPayload = {
   query: string;
-  route: SearchEnvelope["route"];
   results: SearchEnvelope["results"];
   answer: string;
   citations: CompactCitation[];
@@ -13,7 +12,6 @@ type CompactPayload = {
 export function formatCompact(env: SearchEnvelope): string {
   const payload: CompactPayload = {
     query: env.query,
-    route: env.route,
     results: env.results,
     answer: env.answer,
     citations: env.citations.map((c) => {

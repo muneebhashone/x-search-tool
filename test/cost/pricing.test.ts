@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { computeCostUsd, XAI_PRICING, GEMINI_PRICING } from "../../src/cost/pricing.js";
+import { computeCostUsd, XAI_PRICING } from "../../src/cost/pricing.js";
 
 test("pricing: unknown model returns 0 (don't guess)", () => {
   const cost = computeCostUsd({
@@ -62,26 +62,24 @@ test("pricing: cached tokens never billed at full input rate", () => {
   assert.ok(billable < uncached, "cached call must cost less than equivalent uncached");
 });
 
-test("pricing: gemini per-search fee is charged per call", () => {
-  const p = GEMINI_PRICING["gemini-2.5-flash"]!;
-  const oneSearch = computeCostUsd({
-    model: "gemini-2.5-flash",
-    provider: "gemini",
-    in_tokens: 0,
+test("pricing: xai has no per-search fee (searches don't add cost)", () => {
+  const noSearch = computeCostUsd({
+    model: "grok-4.3",
+    provider: "xai",
+    in_tokens: 1000,
     cached_tokens: 0,
-    out_tokens: 0,
-    searches: 1,
+    out_tokens: 500,
+    searches: 0,
   });
   const twoSearches = computeCostUsd({
-    model: "gemini-2.5-flash",
-    provider: "gemini",
-    in_tokens: 0,
+    model: "grok-4.3",
+    provider: "xai",
+    in_tokens: 1000,
     cached_tokens: 0,
-    out_tokens: 0,
+    out_tokens: 500,
     searches: 2,
   });
-  assert.equal(oneSearch, p.per_search_usd);
-  assert.equal(twoSearches, p.per_search_usd! * 2);
+  assert.equal(noSearch, twoSearches, "xAI pricing has no per_search_usd component");
 });
 
 test("pricing: result is rounded to 6 decimals", () => {

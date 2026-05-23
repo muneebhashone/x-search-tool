@@ -2,16 +2,15 @@ import { XAI_BASE_URL } from "../config.js";
 import { computeCostUsd } from "../cost/pricing.js";
 import { missingKey, providerError } from "../errors.js";
 import { resolveApiKey } from "../auth/resolve.js";
-import type { Citation, Result, Route, SearchEnvelope } from "../output/schema.js";
+import type { Citation, Result, SearchEnvelope } from "../output/schema.js";
 
-type GrokToolType = "x_search" | "web_search";
+export type GrokToolType = "x_search" | "web_search";
 
 type GrokCallOpts = {
   query: string;
-  route: Route;
   model: string;
   systemPrompt: string;
-  toolType: GrokToolType;
+  toolTypes: GrokToolType[];
   maxTokens: number;
   maxResults: number;
   noAnswer: boolean;
@@ -20,21 +19,32 @@ type GrokCallOpts = {
   full: boolean;
 };
 
+const CALL_TYPES = new Set(["x_search_call", "web_search_call", "server_tool_use"]);
+const RESULT_TYPES = new Set([
+  "x_search_result",
+  "web_search_result",
+  "server_tool_result",
+  "tool_result",
+]);
+
 export async function callGrok(opts: GrokCallOpts): Promise<SearchEnvelope> {
   const apiKey = resolveApiKey("xai").key;
-  if (!apiKey) throw missingKey("XAI_API_KEY", opts.route);
+  if (!apiKey) throw missingKey("XAI_API_KEY");
 
-  const toolDef: Record<string, unknown> = { type: opts.toolType };
-  if (opts.media) {
-    toolDef["enable_image_understanding"] = true;
-    if (opts.toolType === "x_search") toolDef["enable_video_understanding"] = true;
-  }
+  const tools = opts.toolTypes.map((type) => {
+    const toolDef: Record<string, unknown> = { type };
+    if (opts.media) {
+      toolDef["enable_image_understanding"] = true;
+      if (type === "x_search") toolDef["enable_video_understanding"] = true;
+    }
+    return toolDef;
+  });
 
   const body = {
     model: opts.model,
     input: [{ role: "user", content: opts.query }],
     instructions: opts.systemPrompt,
-    tools: [toolDef],
+    tools,
     tool_choice: "required",
     max_output_tokens: opts.noAnswer ? 64 : opts.maxTokens,
     parallel_tool_calls: false,
@@ -59,7 +69,6 @@ export async function callGrok(opts: GrokCallOpts): Promise<SearchEnvelope> {
   } catch (err) {
     clearTimeout(timeout);
     throw providerError((err as Error).message ?? "network error", {
-      route: opts.route,
       provider: "xai",
       detail: { kind: "network" },
     });
@@ -76,7 +85,6 @@ export async function callGrok(opts: GrokCallOpts): Promise<SearchEnvelope> {
 
   if (!res.ok) {
     throw providerError(`xAI HTTP ${res.status}`, {
-      route: opts.route,
       provider: "xai",
       detail: { status: res.status, body: json },
     });
@@ -101,17 +109,13 @@ function parseGrokResponse(
     if (!isObject(block)) continue;
     const type = String(block["type"] ?? "");
 
-    if (type === `${opts.toolType}_call` || type === "server_tool_use") {
+    if (CALL_TYPES.has(type)) {
       searches += 1;
-      collectResultsFromBlock(block, results, opts.toolType);
-    } else if (
-      type === `${opts.toolType}_result` ||
-      type === "server_tool_result" ||
-      type === "tool_result"
-    ) {
-      collectResultsFromBlock(block, results, opts.toolType);
+      collectResultsFromBlock(block, results, type);
+    } else if (RESULT_TYPES.has(type)) {
+      collectResultsFromBlock(block, results, type);
     } else if (type === "message" || type === "output_text") {
-      collectTextFromMessage(block, synthesisParts, citations, results, opts.toolType);
+      collectTextFromMessage(block, synthesisParts, citations, results);
     }
   }
 
@@ -126,7 +130,7 @@ function parseGrokResponse(
         url,
         title: String(c["title"] ?? ""),
         snippet: String(c["snippet"] ?? c["text"] ?? ""),
-        source: opts.toolType === "x_search" ? "x" : "web",
+        source: sourceFromUrl(url),
       });
     }
   }
@@ -157,7 +161,6 @@ function parseGrokResponse(
 
   const envelope: SearchEnvelope = {
     query: opts.query,
-    route: opts.route,
     model: opts.model,
     results: trimmedResults,
     answer: opts.noAnswer ? "" : synthesisParts.join("").trim(),
@@ -177,20 +180,19 @@ function parseGrokResponse(
 function collectResultsFromBlock(
   block: Record<string, unknown>,
   results: Result[],
-  toolType: GrokToolType,
+  blockType: string,
 ): void {
-  const sourceTag: "x" | "web" = toolType === "x_search" ? "x" : "web";
-  const candidates: unknown[] = [];
+  const candidates: Record<string, unknown>[] = [];
 
   const direct = block["results"];
-  if (Array.isArray(direct)) candidates.push(...direct);
+  if (Array.isArray(direct)) for (const d of direct) if (isObject(d)) candidates.push(d);
 
   const content = block["content"];
   if (Array.isArray(content)) {
     for (const c of content) {
       if (isObject(c)) {
         const sub = c["results"];
-        if (Array.isArray(sub)) candidates.push(...sub);
+        if (Array.isArray(sub)) for (const s of sub) if (isObject(s)) candidates.push(s);
         if (
           typeof c["url"] === "string" ||
           typeof c["title"] === "string" ||
@@ -205,10 +207,9 @@ function collectResultsFromBlock(
   }
 
   const cites = block["citations"];
-  if (Array.isArray(cites)) candidates.push(...cites);
+  if (Array.isArray(cites)) for (const c of cites) if (isObject(c)) candidates.push(c);
 
   for (const cand of candidates) {
-    if (!isObject(cand)) continue;
     const url = String(cand["url"] ?? cand["uri"] ?? cand["link"] ?? "");
     if (!url) continue;
     if (results.some((r) => r.url === url)) continue;
@@ -218,7 +219,7 @@ function collectResultsFromBlock(
       snippet: String(
         cand["snippet"] ?? cand["text"] ?? cand["description"] ?? cand["content"] ?? "",
       ).slice(0, 500),
-      source: sourceTag,
+      source: resolveSource(asStr(cand["type"]), blockType, url),
     };
     const date = cand["date"] ?? cand["published_at"] ?? cand["page_age"] ?? cand["created_at"];
     if (typeof date === "string" && date.length > 0) r.date = date;
@@ -231,9 +232,7 @@ function collectTextFromMessage(
   texts: string[],
   citations: Citation[],
   results: Result[],
-  toolType: GrokToolType,
 ): void {
-  const sourceTag: "x" | "web" = toolType === "x_search" ? "x" : "web";
   const content = block["content"];
   if (typeof block["text"] === "string") texts.push(block["text"] as string);
   if (Array.isArray(content)) {
@@ -257,7 +256,7 @@ function collectTextFromMessage(
               url,
               title: String(a["title"] ?? ""),
               snippet: typeof quote === "string" ? quote.slice(0, 500) : "",
-              source: sourceTag,
+              source: sourceFromUrl(url),
             };
             const date = a["date"] ?? a["published_at"] ?? a["created_at"];
             if (typeof date === "string" && date.length > 0) r.date = date;
@@ -267,6 +266,37 @@ function collectTextFromMessage(
       }
     }
   }
+}
+
+function sourceFromType(type: string | undefined): "x" | "web" | null {
+  if (!type) return null;
+  if (type.startsWith("x_search")) return "x";
+  if (type.startsWith("web_search")) return "web";
+  return null;
+}
+
+function sourceFromUrl(url: string): "x" | "web" {
+  let host = "";
+  try {
+    host = new URL(url).hostname.toLowerCase();
+  } catch {
+    return "web";
+  }
+  if (host === "x.com" || host === "twitter.com") return "x";
+  if (host.endsWith(".x.com") || host.endsWith(".twitter.com")) return "x";
+  return "web";
+}
+
+function resolveSource(
+  itemType: string | undefined,
+  blockType: string | undefined,
+  url: string,
+): "x" | "web" {
+  return sourceFromType(itemType) ?? sourceFromType(blockType) ?? sourceFromUrl(url);
+}
+
+function asStr(v: unknown): string | undefined {
+  return typeof v === "string" ? v : undefined;
 }
 
 function isObject(v: unknown): v is Record<string, unknown> {

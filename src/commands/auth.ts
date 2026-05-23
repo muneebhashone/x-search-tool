@@ -76,7 +76,7 @@ export function status(): void {
   process.stdout.write(lines.join("\n") + "\n");
   if (!any) {
     process.stdout.write(
-      `\nNo keys available. Run \`llms auth login --provider ${PROVIDERS[0]}\` to get started.\n`,
+      `\nNo keys available. Run \`x-search auth login --provider ${PROVIDERS[0]}\` to get started.\n`,
     );
   }
 }
@@ -96,7 +96,7 @@ export async function logout(flags: LogoutFlags): Promise<void> {
   }
 
   if (!flags.provider) {
-    throw badArgs("--provider <xai|gemini> or --all is required");
+    throw badArgs("--provider <xai> or --all is required");
   }
   const provider = parseProvider(flags.provider);
   const removed = clearKey(provider);

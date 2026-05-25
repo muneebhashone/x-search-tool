@@ -2,6 +2,17 @@
   "name": "x-search-tool",
   "version": "0.2.0",
   "description": "X-first search CLI — forces Grok's x_search (with web_search fallback) and returns cited JSON. Optimized for AI agents.",
+  "license": "MIT",
+  "keywords": [
+    "x",
+    "twitter",
+    "search",
+    "grok",
+    "cli",
+    "ai",
+    "agent",
+    "claude-code"
+  ],
   "type": "module",
   "bin": {
     "x-search": "./dist/cli.js"

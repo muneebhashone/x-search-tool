@@ -44,7 +44,9 @@ x-search auth logout --all --yes                 # remove everything
 export XAI_API_KEY=...      # the only key x-search needs
 ```
 
-`.env` is loaded only if `XSEARCH_DOTENV=1`.
+Repository scripts inject development values from Infisical folder
+`/x-search-tool`. Installed CLI users can continue to pass environment
+variables directly or use the encrypted credential store.
 
 ## Usage
 

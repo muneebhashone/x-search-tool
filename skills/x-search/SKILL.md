@@ -48,7 +48,8 @@ Pass `--pretty` only when output is going to a human. Default JSON is the stable
 |-----|----------|
 | `XAI_API_KEY` | the single Grok call (x_search + web_search) |
 
-Pass directly; do *not* rely on a `.env` file unless you explicitly set `XSEARCH_DOTENV=1` first.
+Pass directly; the CLI does not read plaintext environment files. Repository
+development scripts inject values from Infisical.
 
 ## Exit codes
 

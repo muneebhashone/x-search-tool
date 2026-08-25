@@ -25,8 +25,8 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "dev": "tsx src/cli.ts",
-    "start": "node ./dist/cli.js",
+    "dev": "infisical run --projectId=98ac6ff9-be43-46a1-8fbf-131e217bccd3 --env=dev --path=/x-search-tool -- tsx src/cli.ts",
+    "start": "infisical run --projectId=98ac6ff9-be43-46a1-8fbf-131e217bccd3 --env=dev --path=/x-search-tool -- node ./dist/cli.js",
     "test": "npm run build && tsx --test test/index.test.ts",
     "prepublishOnly": "npm run build"
   },

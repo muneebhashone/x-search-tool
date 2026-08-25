@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { cac } from "cac";
 
-import { loadDotenvIfRequested, type RunOptions } from "./config.js";
+import { type RunOptions } from "./config.js";
 import { ExitCode, XSearchError, badArgs } from "./errors.js";
 import { formatCompact, formatErrorCompact } from "./output/compact.js";
 import { formatPretty, formatErrorPretty } from "./output/pretty.js";
@@ -16,7 +16,6 @@ type CliFlags = {
 };
 
 async function main(): Promise<void> {
-  loadDotenvIfRequested();
 
   const cli = cac("x-search");
 
